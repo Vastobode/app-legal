@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Tarefas</title>
+</head>
+
+<body>
+
+  <h1>Lista de Tarefas</h1>
+
+  <input type="text" id="tarefa" placeholder="Digite uma tarefa">
+  <button onclick="adicionarTarefa()">
+    Adicionar
+  </button>
+
+  <ul id="lista"></ul>
+
+  <script>
+
+    async function carregarTarefas() {
+
+      const resposta = await fetch(
+        'http://localhost:8028/tarefas'
+      )
+
+      const tarefas = await resposta.json()
+
+      const lista = document.getElementById('lista')
+
+      lista.innerHTML = ''
+
+      tarefas.forEach(tarefa => {
+
+        const item = document.createElement('li')
+
+        item.innerText = tarefa.titulo
+
+        lista.appendChild(item)
+
+      })
+
+    }
+
+    async function adicionarTarefa() {
+
+      const titulo = document.getElementById('tarefa').value
+
+      await fetch(
+        'http://localhost:8028/tarefas',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'application/json'
+          },
+
+          body: JSON.stringify({
+            titulo
+          })
+        }
+      )
+
+      carregarTarefas()
+
+    }
+
+    carregarTarefas()
+
+  </script>
+
+</body>
+</html>

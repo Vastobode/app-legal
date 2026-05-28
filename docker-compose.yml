@@ -1,0 +1,72 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+    container_name: nikolas_db
+
+    environment:
+      POSTGRES_USER: fatec_user
+      POSTGRES_PASSWORD: fatec_password
+      POSTGRES_DB: todolist
+
+    volumes:
+      - nikolas_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fatec_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    image: nikolascruz8/todolist-api:latest
+
+    container_name: nikolas_api
+
+    restart: always
+
+    environment:
+      DB_HOST: db
+      POSTGRES_USER: fatec_user
+      POSTGRES_PASSWORD: fatec_password
+      POSTGRES_DB: todolist
+      POSTGRES_PORT: 5432
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    ports:
+      - "8028:3000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    logging:
+      driver: "json-file"
+
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build: ./frontend
+    image: nikolascruz8/todolist-web:latest
+
+    container_name: nikolas_web
+
+    ports:
+      - "8080:80"
+
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  nikolas_data:
+
